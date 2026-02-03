@@ -1,0 +1,79 @@
+================================================================================
+  SISTEMA DE CONTROL DE FACTURAS - BANCO (Halconsoft)
+  Resumen para continuar - Última sesión
+================================================================================
+
+PROYECTO: banco (React + TypeScript + Vite + Tailwind + Firebase)
+
+--------------------------------------------------------------------------------
+FUNCIONALIDADES IMPLEMENTADAS
+--------------------------------------------------------------------------------
+- Login/registro con email y contraseña (Firebase Auth)
+- Facturas: crear, editar, eliminar, listar
+- Comercializadora: lista predefinida (HIDROBO, VEHICENTRO, ASSA, etc.) + botón "+" para agregar más
+- N° Factura, Fecha, Cliente, Valor Total, Años de Servicio (1/2/3 años y opciones Cayambe +$20)
+- Cálculos automáticos: valor fijo, excedente, IVA excedente, Comisión Val, IVA ganancia propia, Total IVA
+- Estado "Factura pagada" (checkbox)
+- Datos del vehículo: modelo, año, tipo (Diesel/Gasolina/Eléctrico/Híbrido), placa, color (selector por color real + agregar más), ciudad, dirección, teléfono, fecha entrega
+- Lista de facturas: ordenada por N° Factura de mayor a menor (orden numérico)
+- Reportes IVA: cortes semestrales y reporte por período personalizado
+- Fechas guardadas como hora local (parseLocalDate) para que no se muestre un día menos
+
+--------------------------------------------------------------------------------
+ÚLTIMOS CAMBIOS REALIZADOS
+--------------------------------------------------------------------------------
+1. Lista de facturas
+   - Columna "Acciones" al inicio con icono lápiz (editar) y papelera (eliminar)
+   - Columna "Comercializadora" acortada a "Comercial"
+   - Columna "N° Factura" acortada a "N° Fact"
+   - Orden por N° Factura de mayor a menor (orden numérico en app, no alfabético en Firestore)
+
+2. Formulario factura
+   - Campo Color: selector por color real (círculos de color) + botón "+" para agregar con color picker; se guarda en hex
+   - Botón agregar comercializadora: solo muestra "+" (sin texto "Agregar")
+   - Botón agregar color: solo "+"
+
+3. Fechas
+   - parseLocalDate en utils/calculos.ts para que Fecha de Factura y Fecha de Entrega no se muestren con un día menos (problema de zona horaria UTC)
+
+4. Compatibilidad
+   - anosServicio: soporta valores antiguos numéricos (1,2,3) y nuevos string ('1','2','3','1-cayambe', etc.)
+   - Color: soporta nombres antiguos (BLANCO, ROJO) y hex nuevos; se guarda en hex
+
+--------------------------------------------------------------------------------
+ESTRUCTURA PRINCIPAL DEL CÓDIGO
+--------------------------------------------------------------------------------
+src/
+  App.tsx              - Rutas/vistas: lista, nueva, editar, reportes; auth; cargar facturas
+  main.tsx             - AuthProvider + App
+  config/firebase.ts    - Credenciales proyecto banco-bf50b
+  types/index.ts       - Factura, DatosVehiculo, AnosServicio, TipoCombustible, etc.
+  utils/calculos.ts     - VALORES_FIJOS, calcularValoresFactura, parseLocalDate, formatearMoneda, formatearFecha
+  services/
+    facturasService.ts - crearFactura, actualizarFactura, eliminarFactura, obtenerFacturas (orden numérico N° Fact)
+    authService.ts     - iniciarSesion, registrarUsuario, cerrarSesion
+  components/
+    FormFactura.tsx    - Formulario factura (comercializadora, color por hex, años Cayambe, pagada, etc.)
+    ListaFacturas.tsx  - Tabla con acciones al inicio, iconos, columnas acortadas
+    Login.tsx          - Login/registro
+    ReporteIva.tsx     - Cortes semestrales y reporte por fechas
+  contexts/AuthContext.tsx
+
+--------------------------------------------------------------------------------
+FIREBASE
+--------------------------------------------------------------------------------
+- Proyecto: banco-bf50b
+- Firestore: colección "facturas"; reglas con request.auth != null
+- Authentication: correo/contraseña habilitado
+
+--------------------------------------------------------------------------------
+PARA CONTINUAR MAÑANA
+--------------------------------------------------------------------------------
+- El proyecto está en la carpeta actual (banco). Para guardar una copia de respaldo puedes:
+  1. Copiar toda la carpeta del proyecto a otro lugar, o
+  2. Hacer commit en Git: git add . && git commit -m "Estado actual: lista por N° Fact, colores hex, fechas local, UI acortada"
+- Al retomar: abrir esta carpeta, revisar DONDE_QUEDAMOS.txt y ejecutar npm run dev para seguir desarrollando o probando.
+
+================================================================================
+Fin del resumen - Última actualización para continuar
+================================================================================
