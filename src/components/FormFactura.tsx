@@ -55,10 +55,18 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
     }
     return '2';
   });
+  // Fecha local en YYYY-MM-DD (evita que toISOString() muestre el día siguiente en zonas UTC-)
+  const fechaHoyLocal = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
   const [fechaFactura, setFechaFactura] = useState(
     factura?.fechaFactura 
       ? new Date(factura.fechaFactura).toISOString().split('T')[0]
-      : new Date().toISOString().split('T')[0]
+      : fechaHoyLocal()
   );
   const [cliente, setCliente] = useState(factura?.cliente || '');
   const [pagada, setPagada] = useState(factura?.pagada ?? false);
@@ -90,8 +98,35 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
   // Calcular valores automáticamente
   const valoresCalculados = calcularValoresFactura(valorTotal, anosServicio);
 
-  // Comercializadoras disponibles (defaults + personalizadas)
-  const [comercializadoras, setComercializadoras] = useState<string[]>(COMERCIALIZADORAS_DEFAULT);
+  // Comercializadoras que el usuario eligió ocultar (solo las predefinidas)
+  const [ocultas, setOcultas] = useState<string[]>(() => {
+    try {
+      const s = localStorage.getItem('comercializadoras-ocultas');
+      return s ? JSON.parse(s) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Comercializadoras disponibles (defaults no ocultas + personalizadas desde localStorage)
+  const [comercializadoras, setComercializadoras] = useState<string[]>(() => {
+    try {
+      const ocultasRaw = localStorage.getItem('comercializadoras-ocultas');
+      const ocultasInit = ocultasRaw ? JSON.parse(ocultasRaw) : [];
+      const personalizadasRaw = localStorage.getItem('comercializadoras-personalizadas');
+      const personalizadas = personalizadasRaw ? JSON.parse(personalizadasRaw) : [];
+      return [...COMERCIALIZADORAS_DEFAULT.filter(c => !ocultasInit.includes(c)), ...personalizadas];
+    } catch {
+      return [...COMERCIALIZADORAS_DEFAULT];
+    }
+  });
+
+  useEffect(() => {
+    const personalizadasRaw = localStorage.getItem('comercializadoras-personalizadas');
+    const personalizadas = personalizadasRaw ? JSON.parse(personalizadasRaw) : [];
+    setComercializadoras([...COMERCIALIZADORAS_DEFAULT.filter(c => !ocultas.includes(c)), ...personalizadas]);
+  }, [ocultas]);
+
   // Colores disponibles: hex (predefinidos + personalizados desde localStorage)
   const [colores, setColores] = useState<string[]>(() => {
     const custom = localStorage.getItem('colores-vehiculo-hex');
@@ -99,14 +134,6 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
   });
   const [mostrarColorPicker, setMostrarColorPicker] = useState(false);
   const [colorElegido, setColorElegido] = useState('#000000');
-
-  useEffect(() => {
-    // Cargar comercializadoras personalizadas desde localStorage
-    const personalizadas = localStorage.getItem('comercializadoras-personalizadas');
-    if (personalizadas) {
-      setComercializadoras([...COMERCIALIZADORAS_DEFAULT, ...JSON.parse(personalizadas)]);
-    }
-  }, []);
 
   // Si la factura tiene un color que no está en la lista (p. ej. hex guardado), agregarlo al editar
   useEffect(() => {
@@ -123,9 +150,24 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
       setNuevaComercializadora('');
       setMostrarNueva(false);
       
-      // Guardar en localStorage
       const personalizadas = nuevas.filter(c => !COMERCIALIZADORAS_DEFAULT.includes(c));
       localStorage.setItem('comercializadoras-personalizadas', JSON.stringify(personalizadas));
+    }
+  };
+
+  const handleEliminarComercializadora = (nombre: string) => {
+    if (COMERCIALIZADORAS_DEFAULT.includes(nombre)) {
+      const nuevasOcultas = [...ocultas, nombre];
+      setOcultas(nuevasOcultas);
+      localStorage.setItem('comercializadoras-ocultas', JSON.stringify(nuevasOcultas));
+    } else {
+      const nuevas = comercializadoras.filter(c => c !== nombre);
+      setComercializadoras(nuevas);
+      const personalizadas = nuevas.filter(c => !COMERCIALIZADORAS_DEFAULT.includes(c) || ocultas.includes(c));
+      localStorage.setItem('comercializadoras-personalizadas', JSON.stringify(personalizadas));
+    }
+    if (comercializadora === nombre) {
+      setComercializadora('');
     }
   };
 
@@ -161,13 +203,13 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
         datosVehiculo.fechaEntrega;
 
       const facturaCompleta: Omit<Factura, 'id' | 'createdAt' | 'updatedAt'> = {
+        ...valoresCalculados,
         comercializadora,
         numeroFactura,
         valorTotal,
         anosServicio,
         fechaFactura,
         cliente,
-        ...valoresCalculados,
         datosVehiculo: tieneDatosVehiculo ? datosVehiculo : undefined,
         pagada,
       };
@@ -218,6 +260,27 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
               </button>
             )}
           </div>
+          {comercializadoras.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {comercializadoras.map((com) => (
+                <span
+                  key={com}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-gray-100 text-gray-800 text-sm"
+                >
+                  {com}
+                  <button
+                    type="button"
+                    onClick={() => handleEliminarComercializadora(com)}
+                    title={`Eliminar ${com}`}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-0.5 leading-none"
+                    aria-label={`Eliminar ${com}`}
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
           {mostrarNueva && (
             <div className="mt-2 flex gap-2">
               <input

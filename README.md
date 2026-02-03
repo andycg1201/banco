@@ -66,7 +66,17 @@ service cloud.firestore {
 }
 ```
 
-### 4. Ejecutar la aplicación
+### 4. Usuario restringido (Valeria)
+
+Para que Valeria pueda entrar y ver solo la pestaña **Resumen** (con sus filtros):
+
+1. En [Firebase Console](https://console.firebase.google.com/) → tu proyecto → **Authentication** → **Users** → **Add user**.
+2. Crea un usuario con:
+   - **Email:** `valeria@g.com`
+   - **Contraseña:** `val2026`
+3. En la app, Valeria puede iniciar sesión con **usuario:** `valeria` o **email:** `valeria@g.com` y **contraseña:** `val2026`. Solo verá Resumen y Cerrar sesión.
+
+### 5. Ejecutar la aplicación
 
 ```bash
 npm run dev

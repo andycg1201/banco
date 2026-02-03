@@ -106,7 +106,6 @@ export default function ReporteIva({ facturas }: Props) {
         <div className="space-y-2">
           {cortes.map((corte, index) => {
             const inicio = new Date(corte.inicio);
-            const fin = new Date(corte.fin);
             const esPrimerSemestre = inicio.getMonth() < 6;
             const ano = inicio.getFullYear();
             const label = `${esPrimerSemestre ? 'Enero-Junio' : 'Julio-Diciembre'} ${ano}`;

@@ -4,16 +4,21 @@ import { crearFactura, actualizarFactura, eliminarFactura, obtenerFacturas } fro
 import FormFactura from './components/FormFactura';
 import ListaFacturas from './components/ListaFacturas';
 import ReporteIva from './components/ReporteIva';
+import ReportePendientesInstalacion from './components/ReportePendientesInstalacion';
 import Login from './components/Login';
 import { calcularValoresFactura } from './utils/calculos';
 import { useAuth } from './contexts/AuthContext';
 import { cerrarSesion } from './services/authService';
+import { isRestrictedUser } from './config/auth';
 
 type Vista = 'lista' | 'nueva' | 'editar' | 'reportes';
+
+type SubVistaReportes = 'iva' | 'pendientes';
 
 function App() {
   const { user, loading } = useAuth();
   const [vista, setVista] = useState<Vista>('lista');
+  const [subVistaReportes, setSubVistaReportes] = useState<SubVistaReportes>('iva');
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [facturaEditando, setFacturaEditando] = useState<Factura | undefined>();
   const [cargando, setCargando] = useState(false);
@@ -130,6 +135,37 @@ function App() {
     return <Login onLoginSuccess={() => {}} />;
   }
 
+  // Usuario restringido (valeria): solo ve Resumen con sus filtros
+  if (isRestrictedUser(user.email)) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <header className="bg-white shadow-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold text-gray-800">Resumen - Banco</h1>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600">valeria</span>
+                <button
+                  onClick={handleCerrarSesion}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {cargando ? (
+            <div className="text-center py-12 text-gray-500">Cargando...</div>
+          ) : (
+            <ReportePendientesInstalacion facturas={facturas} />
+          )}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
@@ -152,14 +188,14 @@ function App() {
                   Facturas
                 </button>
                 <button
-                  onClick={() => setVista('reportes')}
+                  onClick={() => { setVista('reportes'); setSubVistaReportes('iva'); }}
                   className={`px-4 py-2 rounded-md ${
                     vista === 'reportes'
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  Reportes IVA
+                  Reportes
                 </button>
               </nav>
               <div className="flex items-center gap-3 border-l pl-4">
@@ -224,7 +260,34 @@ function App() {
         )}
 
         {vista === 'reportes' && (
-          <ReporteIva facturas={facturas} />
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSubVistaReportes('iva')}
+                className={`px-4 py-2 rounded-md ${
+                  subVistaReportes === 'iva'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Reportes IVA
+              </button>
+              <button
+                onClick={() => setSubVistaReportes('pendientes')}
+                className={`px-4 py-2 rounded-md ${
+                  subVistaReportes === 'pendientes'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Resumen
+              </button>
+            </div>
+            {subVistaReportes === 'iva' && <ReporteIva facturas={facturas} />}
+            {subVistaReportes === 'pendientes' && (
+              <ReportePendientesInstalacion facturas={facturas} />
+            )}
+          </div>
         )}
       </main>
     </div>

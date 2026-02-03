@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { iniciarSesion, registrarUsuario } from '../services/authService';
+import { toLoginEmail } from '../config/auth';
 
 interface Props {
   onLoginSuccess: () => void;
@@ -18,11 +19,12 @@ export default function Login({ onLoginSuccess }: Props) {
     setCargando(true);
 
     try {
+      const emailParaFirebase = toLoginEmail(email);
       if (esRegistro) {
-        await registrarUsuario(email, password);
+        await registrarUsuario(emailParaFirebase, password);
         alert('Usuario registrado exitosamente');
       } else {
-        await iniciarSesion(email, password);
+        await iniciarSesion(emailParaFirebase, password);
       }
       onLoginSuccess();
     } catch (error: any) {
@@ -52,18 +54,18 @@ export default function Login({ onLoginSuccess }: Props) {
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Correo Electrónico
+                Correo o usuario
               </label>
               <input
                 id="email"
                 name="email"
-                type="email"
-                autoComplete="email"
+                type="text"
+                autoComplete="username"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="correo@ejemplo.com"
+                placeholder="correo@ejemplo.com o valeria"
               />
             </div>
             <div>
