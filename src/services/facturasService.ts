@@ -32,6 +32,8 @@ export async function crearFactura(factura: Omit<Factura, 'id' | 'createdAt' | '
     comisionVal: factura.comisionVal,
     ivaGananciaPropia: factura.ivaGananciaPropia,
     totalIva: factura.totalIva,
+    pagada: factura.pagada ?? false,
+    noDeseaRenovar: factura.noDeseaRenovar ?? false,
     createdAt: ahora,
     updatedAt: ahora,
   };
@@ -85,6 +87,7 @@ export async function actualizarFactura(
   if (factura.ivaGananciaPropia !== undefined) datosActualizacion.ivaGananciaPropia = factura.ivaGananciaPropia;
   if (factura.totalIva !== undefined) datosActualizacion.totalIva = factura.totalIva;
   if (factura.pagada !== undefined) datosActualizacion.pagada = factura.pagada;
+  if (factura.noDeseaRenovar !== undefined) datosActualizacion.noDeseaRenovar = factura.noDeseaRenovar;
 
   // Convertir fechaFactura a Timestamp si existe (como hora local para evitar día anterior)
   if (factura.fechaFactura) {
@@ -189,7 +192,7 @@ export async function obtenerFacturasPorPeriodo(
   );
   
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => {
+  const facturas = querySnapshot.docs.map((doc) => {
     const data = doc.data();
     // Normalizar anosServicio: convertir números antiguos a strings
     let anosServicio = data.anosServicio;
@@ -218,4 +221,12 @@ export async function obtenerFacturasPorPeriodo(
       } : undefined,
     } as Factura;
   });
+
+  facturas.sort((a, b) => {
+    const numA = parseInt(String(a.numeroFactura).replace(/\D/g, ''), 10) || 0;
+    const numB = parseInt(String(b.numeroFactura).replace(/\D/g, ''), 10) || 0;
+    return numB - numA;
+  });
+
+  return facturas;
 }

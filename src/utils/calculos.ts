@@ -1,5 +1,49 @@
 import { Factura, AnosServicio } from '../types';
 
+const DIAS_ALERTA_RENOVACION = 15;
+
+/**
+ * Extrae el número de años de anosServicio (1, 2 o 3).
+ * Soporta '1', '2', '3' y variantes '1-cayambe', '2-cayambe', etc.
+ */
+export function extraerAnosDeServicio(anosServicio: AnosServicio | number | string): number {
+  const str = String(anosServicio);
+  const num = parseInt(str.split('-')[0], 10);
+  return isNaN(num) || num < 1 || num > 3 ? 1 : num;
+}
+
+/**
+ * Calcula la fecha de vencimiento del servicio a partir de fechaEntrega + años.
+ * Retorna null si no hay fechaEntrega.
+ */
+export function calcularFechaVencimiento(
+  fechaEntrega: string | undefined,
+  anosServicio: AnosServicio | number | string
+): Date | null {
+  if (!fechaEntrega) return null;
+  const d = parseLocalDate(fechaEntrega);
+  if (isNaN(d.getTime())) return null;
+  const anos = extraerAnosDeServicio(anosServicio);
+  const vencimiento = new Date(d);
+  vencimiento.setFullYear(vencimiento.getFullYear() + anos);
+  return vencimiento;
+}
+
+/**
+ * Días hasta el vencimiento. Positivo = futuro, negativo = ya venció, 0 = hoy.
+ */
+export function diasHastaVencimiento(fechaVencimiento: Date): number {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const v = new Date(fechaVencimiento);
+  v.setHours(0, 0, 0, 0);
+  return Math.floor((v.getTime() - hoy.getTime()) / (24 * 60 * 60 * 1000));
+}
+
+export function estaProximoAVencer(dias: number): boolean {
+  return dias >= 0 && dias <= DIAS_ALERTA_RENOVACION;
+}
+
 // Valores fijos por años (ya incluyen IVA)
 export const VALORES_FIJOS: Record<AnosServicio, number> = {
   '1': 208,

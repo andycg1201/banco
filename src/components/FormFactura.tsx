@@ -70,6 +70,7 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
   );
   const [cliente, setCliente] = useState(factura?.cliente || '');
   const [pagada, setPagada] = useState(factura?.pagada ?? false);
+  const [noDeseaRenovar, setNoDeseaRenovar] = useState(factura?.noDeseaRenovar ?? false);
   const [cargando, setCargando] = useState(false);
 
   // Normalizar color guardado (nombre -> hex) para compatibilidad
@@ -212,6 +213,7 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
         cliente,
         datosVehiculo: tieneDatosVehiculo ? datosVehiculo : undefined,
         pagada,
+        noDeseaRenovar,
       };
 
       await onSubmit(facturaCompleta);
@@ -224,8 +226,8 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">
+    <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-6 rounded-lg shadow-md space-y-6 text-sm">
+      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
         {factura ? 'Editar Factura' : 'Nueva Factura'}
       </h2>
 
@@ -239,7 +241,7 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
             <select
               value={comercializadora}
               onChange={(e) => setComercializadora(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
               <option value="">Seleccione...</option>
@@ -417,6 +419,18 @@ export default function FormFactura({ factura, onSubmit, onCancel }: Props) {
           />
           <label htmlFor="pagada" className="text-sm font-medium text-gray-700">
             Factura pagada
+          </label>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            id="noDeseaRenovar"
+            type="checkbox"
+            checked={noDeseaRenovar}
+            onChange={(e) => setNoDeseaRenovar(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-slate-600 focus:ring-slate-500"
+          />
+          <label htmlFor="noDeseaRenovar" className="text-sm font-medium text-gray-700">
+            Cliente no desea renovar
           </label>
         </div>
       </div>

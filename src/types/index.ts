@@ -30,6 +30,7 @@ export interface Factura {
   totalIva: number;
   datosVehiculo?: DatosVehiculo;
   pagada?: boolean; // true = factura pagada, false = pendiente
+  noDeseaRenovar?: boolean; // true = cliente indicó que no renovará el servicio
   createdAt?: string;
   updatedAt?: string;
 }

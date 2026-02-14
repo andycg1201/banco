@@ -37,13 +37,6 @@ function colorToHex(color: string | undefined): string | null {
   return null;
 }
 
-function hexToRgb(hex: string | null): [number, number, number] | null {
-  if (!hex || !hex.startsWith('#')) return null;
-  const m = hex.slice(1).match(/([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})/i);
-  if (!m) return null;
-  return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
-}
-
 function normalizarBusqueda(s: string): string {
   return s.trim().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
 }
@@ -101,9 +94,6 @@ export default function ReportePendientesInstalacion({ facturas }: Props) {
       'Años Serv.',
       'Instalación',
       'Pago',
-      'Modelo',
-      'Tipo',
-      'Color',
       'Placa',
       'Ciudad',
     ];
@@ -118,14 +108,10 @@ export default function ReportePendientesInstalacion({ facturas }: Props) {
       String(f.anosServicio).replace('-cayambe', ''),
       f.datosVehiculo?.fechaEntrega ? 'Instalado' : 'Pendiente',
       f.pagada ? 'Pagada' : 'Pendiente',
-      f.datosVehiculo?.modelo ?? '—',
-      f.datosVehiculo?.tipo ? TIPO_LABEL[f.datosVehiculo.tipo] ?? f.datosVehiculo.tipo : '—',
-      '',
       f.datosVehiculo?.placa ?? '—',
       f.datosVehiculo?.ciudad ?? '—',
     ]);
 
-    const colorColumnIndex = 11;
     autoTable(doc, {
       head: [headers],
       body: rows,
@@ -134,46 +120,33 @@ export default function ReportePendientesInstalacion({ facturas }: Props) {
       columnStyles: {
         0: { fontSize: 6 },
         4: { fontSize: 6 },
-        9: { fontSize: 6 },
       },
       headStyles: { fillColor: [59, 130, 246] },
       margin: { left: 14, right: 14 },
-      didDrawCell: (data) => {
-        if (data.section === 'body' && data.column.index === colorColumnIndex) {
-          const rowIndex = data.row.index;
-          const factura = listadoFiltrado[rowIndex];
-          const hex = colorToHex(factura?.datosVehiculo?.color);
-          const rgb = hexToRgb(hex);
-          if (rgb) {
-            doc.setFillColor(rgb[0], rgb[1], rgb[2]);
-            doc.rect(data.cell.x + 1, data.cell.y + 1, data.cell.width - 2, data.cell.height - 2, 'F');
-          }
-        }
-      },
     });
 
     doc.save(`reporte-vehiculos-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
           Resumen
         </h2>
         <button
           type="button"
           onClick={exportarPdf}
           disabled={listadoFiltrado.length === 0}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
         >
           Exportar a PDF
         </button>
       </div>
 
       {/* Filtros */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <h3 className="font-semibold text-gray-800 mb-3">Filtros</h3>
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <h3 className="font-semibold text-gray-800 mb-3 text-sm">Filtros</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Instalación</label>
@@ -250,70 +223,70 @@ export default function ReportePendientesInstalacion({ facturas }: Props) {
         </div>
       </div>
 
-      <p className="text-gray-600 mb-4">
+      <p className="text-gray-600 mb-4 text-sm">
         Mostrando <strong>{listadoFiltrado.length}</strong> de <strong>{facturas.length}</strong> factura(s).
       </p>
 
       {listadoFiltrado.length === 0 ? (
-        <p className="text-gray-500 py-8 text-center">
+        <p className="text-gray-500 py-8 text-center text-sm">
           No hay facturas que coincidan con los filtros.
         </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-200 text-sm">
+        <div className="overflow-x-auto -mx-2 sm:mx-0">
+          <table className="min-w-full border border-gray-200 text-xs sm:text-sm">
             <thead>
               <tr className="bg-blue-500 text-white">
-                <th className="px-3 py-2 text-left">Comercial</th>
-                <th className="px-3 py-2 text-left">Fecha factura</th>
-                <th className="px-3 py-2 text-left">Fecha instal.</th>
-                <th className="px-3 py-2 text-left">N° Fact</th>
-                <th className="px-3 py-2 text-left">Cliente</th>
-                <th className="px-3 py-2 text-right">Valor Total</th>
-                <th className="px-3 py-2 text-center">Años Serv.</th>
-                <th className="px-3 py-2 text-left">Instalación</th>
-                <th className="px-3 py-2 text-left">Pago</th>
-                <th className="px-3 py-2 text-left">Modelo</th>
-                <th className="px-3 py-2 text-left">Tipo</th>
-                <th className="px-3 py-2 text-left">Color</th>
-                <th className="px-3 py-2 text-left">Placa</th>
-                <th className="px-3 py-2 text-left">Ciudad</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Comercial</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Fecha factura</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Fecha instal.</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">N° Fact</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Cliente</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-right font-medium">Valor Total</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-center font-medium">Años Serv.</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Instalación</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Pago</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Modelo</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Tipo</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Color</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Placa</th>
+                <th className="px-2 sm:px-3 py-1.5 sm:py-2 text-left font-medium">Ciudad</th>
               </tr>
             </thead>
             <tbody>
               {listadoFiltrado.map((f) => (
                 <tr key={f.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="px-3 py-2 text-xs">{f.comercializadora}</td>
-                  <td className="px-3 py-2">{formatearFecha(f.fechaFactura)}</td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">{f.comercializadora}</td>
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">{formatearFecha(f.fechaFactura)}</td>
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
                     {f.datosVehiculo?.fechaEntrega ? formatearFecha(f.datosVehiculo.fechaEntrega) : '—'}
                   </td>
-                  <td className="px-3 py-2">{f.numeroFactura}</td>
-                  <td className="px-3 py-2 text-xs">{f.cliente}</td>
-                  <td className="px-3 py-2 text-right">{formatearMoneda(f.valorTotal)}</td>
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2">{f.numeroFactura}</td>
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">{f.cliente}</td>
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2 text-right whitespace-nowrap">{formatearMoneda(f.valorTotal)}</td>
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2 text-center">
                     {String(f.anosServicio).replace('-cayambe', '')}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2">
                     {f.datosVehiculo?.fechaEntrega ? (
                       <span className="text-green-700">Instalado</span>
                     ) : (
                       <span className="text-amber-600">Pendiente</span>
                     )}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2">
                     {f.pagada ? (
                       <span className="text-green-700">Pagada</span>
                     ) : (
                       <span className="text-amber-600">Pendiente</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-xs">{f.datosVehiculo?.modelo ?? '—'}</td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">{f.datosVehiculo?.modelo ?? '—'}</td>
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2">
                     {f.datosVehiculo?.tipo
                       ? TIPO_LABEL[f.datosVehiculo.tipo] ?? f.datosVehiculo.tipo
                       : '—'}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2">
                     {(() => {
                       const hex = colorToHex(f.datosVehiculo?.color);
                       return hex ? (
@@ -327,8 +300,8 @@ export default function ReportePendientesInstalacion({ facturas }: Props) {
                       );
                     })()}
                   </td>
-                  <td className="px-3 py-2">{f.datosVehiculo?.placa ?? '—'}</td>
-                  <td className="px-3 py-2">{f.datosVehiculo?.ciudad ?? '—'}</td>
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2">{f.datosVehiculo?.placa ?? '—'}</td>
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2">{f.datosVehiculo?.ciudad ?? '—'}</td>
                 </tr>
               ))}
             </tbody>

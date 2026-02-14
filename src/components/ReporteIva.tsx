@@ -64,12 +64,12 @@ export default function ReporteIva({ facturas }: Props) {
   const corteActual = cortes.find(c => c.inicio === corteSeleccionado);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Reportes de IVA</h2>
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md text-sm">
+      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Reportes de IVA</h2>
 
       {/* Reporte por Periodo Personalizado */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-md">
-        <h3 className="font-semibold text-gray-800 mb-3">Reporte por Período Personalizado</h3>
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-gray-50 rounded-md">
+        <h3 className="font-semibold text-gray-800 mb-3 text-sm">Reporte por Período Personalizado</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Inicio</label>
